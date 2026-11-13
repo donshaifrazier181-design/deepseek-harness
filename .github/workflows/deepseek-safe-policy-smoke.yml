@@ -1,0 +1,22 @@
+name: DeepSeek Harness Safe Policy Smoke
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-policy-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify source identity and test files
+        run: |
+          node -e "const p=require('./package.json'); if(!p.scripts?.['test:approval-policy'])process.exit(2)"
+          test -f .github/review-ownership/check-approval.test.mjs
+          test -f .github/review-ownership/blame-ownership.test.mjs
+          test -f .github/review-ownership/author-weight.test.mjs
+      - name: Execute real built-in approval policy regression tests
+        run: npm run test:approval-policy
